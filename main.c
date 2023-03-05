@@ -29,6 +29,7 @@ typedef struct Room
 int screenSetup();
 Room ** mapSetup();
 Room * createRoom(int, int, int, int);
+int drawRoom(Room *);
 Player * playerSetup();
 int handleInput(int, Player *);
 int playerMove(int, int, Player *);
@@ -48,7 +49,7 @@ int main(void) {
     player = playerSetup(10, 15, 25); 
 
     while((ch = getch()) != 'x'){ 
-        mvprintw(2,1, "Player input : %c ", ch);
+        mvprintw(1,0, "Player input : %c ", ch);
         handleInput(ch, player);
     }
     endwin();
@@ -60,6 +61,14 @@ int main(void) {
     ROOM FUNCTIONS
 */
 
+/**
+ * Creates a room pointer and allocates size
+ * @param y The Y position of the room (Top)
+ * @param x The X position of the room (Left)
+ * @param heigth The heigth of the room
+ * @param width The width of the room
+ * @return A pointer to the room created
+*/
 Room * createRoom(int y, int x, int heigth, int width) {
  Room * room;
  room = malloc(sizeof(Room));
@@ -67,25 +76,32 @@ Room * createRoom(int y, int x, int heigth, int width) {
  room->xPos = x;
  room->height = heigth;
  room->witdh = width;
-
- for(int i = 0; i <= width; i++) {
-    for(int j = 0; j <= heigth; j++){
-        if(i == 0 || i == width) {
-            if (j == 0 || j == heigth) {
-                mvprintw(y+j, x+i, "O");
-            } else {
-                mvprintw(y+j, x+i, "|");
-            }
-        } else if (j == 0 || j == heigth) {
-            mvprintw(y+j, x+i, "-");
-        } else {
-            mvprintw(y+j, x+i, ".");
-        }
-    }
- }
  return room;
 }
 
+/**
+ * Draws a room on the map
+ * @param room A pointer to the room that's drawn
+ * @return Zero if not failed
+*/
+int drawRoom(Room * room) {
+    for(int i = 0; i <= room->witdh; i++) {
+        for(int j = 0; j <= room->height; j++){
+            if(i == 0 || i == room->witdh) {
+                if (j == 0 || j == room->height) {
+                    mvprintw(room->yPos+j, room->xPos+i, "O");
+                } else {
+                    mvprintw(room->yPos+j, room->xPos+i, "|");
+                }
+            } else if (j == 0 || j == room->height) {
+                mvprintw(room->yPos+j, room->xPos+i, "-");
+            } else {
+                mvprintw(room->yPos+j, room->xPos+i, ".");
+            }
+        }
+    }
+    return 0;
+}
 
 int screenSetup() {
     initscr();
@@ -96,12 +112,22 @@ int screenSetup() {
     return 0;
 }
 
-
+/**
+ * Setup the whole map
+ * @return An array of rooms
+*/
 Room ** mapSetup() {
     Room ** rooms; // Array of rooms
     rooms = malloc(sizeof(Room) * 6);
+
     rooms [0] = createRoom(7, 12, 6, 14);
-    return 0;
+    drawRoom(rooms[0]);
+    mvprintw(1,0, "Address of the room 0 : %p", rooms[0]);
+
+    rooms [1] = createRoom(12, 32, 18, 9);
+    drawRoom(rooms[1]);
+    mvprintw(2,0, "Address of the room 1 : %p", rooms[1]);
+    return rooms;
 }
 
 
