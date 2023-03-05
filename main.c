@@ -89,7 +89,7 @@ Room * createRoom(int y, int x, int heigth, int width) {
     room->door = malloc(sizeof(Position) * 4);
     
     // Top door
-    int topDoorX = rand() % (width - 1) + x +1;
+    int topDoorX = rand() % (width - 2) + x +1;
     
     
     room->door[0] = malloc(sizeof(Position));
@@ -97,19 +97,19 @@ Room * createRoom(int y, int x, int heigth, int width) {
     room->door[0]->y = y;
 
     // Bottom door
-    int botDoorX = rand() % (width - 1) + x +1;
+    int botDoorX = rand() % (width - 2) + x +1;
     room->door[1] = malloc(sizeof(Position));
     room->door[1]->x = botDoorX;
     room->door[1]->y = heigth + y;
 
     // Left door
-    int leftDoorY = rand() % (heigth - 1) + y + 1;
+    int leftDoorY = rand() % (heigth - 2) + y + 1;
     room->door[2] = malloc(sizeof(Position));
     room->door[2]->x = x;
     room->door[2]->y = leftDoorY;
 
     // Right door
-    int rightDoorY = rand() % (heigth - 1) + y + 1;
+    int rightDoorY = rand() % (heigth - 2) + y + 1;
     room->door[3] = malloc(sizeof(Position));
     room->door[3]->x = width + x;
     room->door[3]->y = rightDoorY;
