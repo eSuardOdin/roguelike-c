@@ -9,9 +9,7 @@ typedef struct Player
     int xPos;
     int yPos;
     int health;
-
-    // Monster ** monsters; // Array to pointers of monsters
-    // Item ** items;
+    // Room * room;
 } Player;
 
 /**
@@ -23,6 +21,9 @@ typedef struct Room
     int yPos;
     int witdh;
     int height;
+
+    // Monster ** monsters; // Array to pointers of monsters
+    // Item ** items;
 
 } Room;
 
@@ -87,14 +88,17 @@ Room * createRoom(int y, int x, int heigth, int width) {
 int drawRoom(Room * room) {
     for(int i = 0; i <= room->witdh; i++) {
         for(int j = 0; j <= room->height; j++){
+            // Draw angles and vertical walls
             if(i == 0 || i == room->witdh) {
                 if (j == 0 || j == room->height) {
                     mvprintw(room->yPos+j, room->xPos+i, "O");
                 } else {
                     mvprintw(room->yPos+j, room->xPos+i, "|");
                 }
+            // Draw horizontal walls
             } else if (j == 0 || j == room->height) {
                 mvprintw(room->yPos+j, room->xPos+i, "-");
+            // Draw floor
             } else {
                 mvprintw(room->yPos+j, room->xPos+i, ".");
             }
@@ -102,6 +106,8 @@ int drawRoom(Room * room) {
     }
     return 0;
 }
+
+
 
 int screenSetup() {
     initscr();
@@ -130,7 +136,12 @@ Room ** mapSetup() {
     return rooms;
 }
 
-
+/**
+ * Setup the player and place it on the map.
+ * Todo :
+ *     - Make attributes dependant to a class/race system
+ *     - Don't hardcode spawn
+*/
 Player * playerSetup() {
     Player * newPlayer;
     newPlayer = malloc(sizeof(Player));
@@ -141,7 +152,14 @@ Player * playerSetup() {
     return newPlayer;
 }
 
-
+/**
+ * Moves the player on designated location, draw
+ * floor back and move cursor on player
+ * @param y Y location to move to
+ * @param x X location to move to
+ * @param player Pointer to the player
+ * @return Zero if not failed
+*/
 int playerMove(int y, int x, Player * player) {
     // Replace old position
     mvprintw(player->yPos, player->xPos, ".");
@@ -150,8 +168,19 @@ int playerMove(int y, int x, Player * player) {
     player->yPos = y;
     mvprintw(player->yPos, player->xPos, "@");
     move(player->yPos, player->xPos);
+
+    return 0;
 }
 
+
+/**
+ * Check if the move triggered by user input
+ * is valid, calls playerMove()
+ * @param newY The Y location that's checked
+ * @param newX The X location that's checked
+ * @param player A pointer to the player
+ * @return Zero if not failed
+*/
 int checkMove(int newY, int newX, Player * player) {
     int location = mvinch(newY, newX);
     switch (location)
@@ -166,6 +195,13 @@ int checkMove(int newY, int newX, Player * player) {
     }
 }
 
+/**
+ * Handle the user input and calls checkMove() depending
+ * on input
+ * @param input The char inputed by user
+ * @param player Pointer to the player
+ * @return Zero if not failed
+*/
 int handleInput (int input, Player * player) {
     int newY;
     int newX;
