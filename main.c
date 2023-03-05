@@ -1,13 +1,21 @@
 #include <ncurses.h>
 #include <stdlib.h>
+#include <time.h>
+
+
+
+typedef struct Position {
+    int x;
+    int y;
+    // TILE_TYPE
+} Position;
 
 /**
  * Definition of the Player struct
 */
 typedef struct Player
 {
-    int xPos;
-    int yPos;
+    Position position;
     int health;
     // Room * room;
 } Player;
@@ -17,11 +25,11 @@ typedef struct Player
 */
 typedef struct Room
 {
-    int xPos;
-    int yPos;
+    Position position;
     int witdh;
     int height;
 
+    Position ** door;
     // Monster ** monsters; // Array to pointers of monsters
     // Item ** items;
 
@@ -39,6 +47,7 @@ int checkMove(int, int, Player *);
 
 int main(void) {
 
+    srand(time(NULL));
     Player * player;
     int ch; // player input
 
@@ -71,12 +80,40 @@ int main(void) {
  * @return A pointer to the room created
 */
 Room * createRoom(int y, int x, int heigth, int width) {
- Room * room;
- room = malloc(sizeof(Room));
- room->yPos = y;
- room->xPos = x;
- room->height = heigth;
- room->witdh = width;
+    Room * room;
+    room = malloc(sizeof(Room));
+    room->position.y = y;
+    room->position.x = x;
+    room->height = heigth;
+    room->witdh = width;
+    room->door = malloc(sizeof(Position) * 4);
+    
+    // Top door
+    int topDoorX = rand() % (width - 1) + x +1;
+    
+    
+    room->door[0] = malloc(sizeof(Position));
+    room->door[0]->x = topDoorX;
+    room->door[0]->y = y;
+
+    // Bottom door
+    int botDoorX = rand() % (width - 1) + x +1;
+    room->door[1] = malloc(sizeof(Position));
+    room->door[1]->x = botDoorX;
+    room->door[1]->y = heigth + y;
+
+    // Left door
+    int leftDoorY = rand() % (heigth - 1) + y + 1;
+    room->door[2] = malloc(sizeof(Position));
+    room->door[2]->x = x;
+    room->door[2]->y = leftDoorY;
+
+    // Right door
+    int rightDoorY = rand() % (heigth - 1) + y + 1;
+    room->door[3] = malloc(sizeof(Position));
+    room->door[3]->x = width + x;
+    room->door[3]->y = rightDoorY;
+ 
  return room;
 }
 
@@ -91,18 +128,26 @@ int drawRoom(Room * room) {
             // Draw angles and vertical walls
             if(i == 0 || i == room->witdh) {
                 if (j == 0 || j == room->height) {
-                    mvprintw(room->yPos+j, room->xPos+i, "O");
+                    mvprintw(room->position.y+j, room->position.x+i, "O");
                 } else {
-                    mvprintw(room->yPos+j, room->xPos+i, "|");
+                    mvprintw(room->position.y+j, room->position.x+i, "|");
                 }
             // Draw horizontal walls
             } else if (j == 0 || j == room->height) {
-                mvprintw(room->yPos+j, room->xPos+i, "-");
+                mvprintw(room->position.y+j, room->position.x+i, "-");
             // Draw floor
             } else {
-                mvprintw(room->yPos+j, room->xPos+i, ".");
+                mvprintw(room->position.y+j, room->position.x+i, ".");
             }
         }
+        // Top door draw
+        mvprintw(room->door[0]->y, room->door[0]->x, "+");
+        // Bottom door draw
+        mvprintw(room->door[1]->y, room->door[1]->x, "+");
+        // Left door draw
+        mvprintw(room->door[2]->y, room->door[2]->x, "+");
+        // Right door draw
+        mvprintw(room->door[3]->y, room->door[3]->x, "+");
     }
     return 0;
 }
@@ -128,11 +173,11 @@ Room ** mapSetup() {
 
     rooms [0] = createRoom(7, 12, 6, 14);
     drawRoom(rooms[0]);
-    mvprintw(1,0, "Address of the room 0 : %p", rooms[0]);
+    mvprintw(2,0, "Address of the room 0 : %p", rooms[0]);
 
     rooms [1] = createRoom(12, 32, 18, 9);
     drawRoom(rooms[1]);
-    mvprintw(2,0, "Address of the room 1 : %p", rooms[1]);
+    mvprintw(3,0, "Address of the room 1 : %p", rooms[1]);
     return rooms;
 }
 
@@ -145,8 +190,8 @@ Room ** mapSetup() {
 Player * playerSetup() {
     Player * newPlayer;
     newPlayer = malloc(sizeof(Player));
-    newPlayer->xPos = 15;
-    newPlayer->yPos = 10;
+    newPlayer->position.x = 15;
+    newPlayer->position.y = 10;
     newPlayer->health = 25;
     playerMove(10, 15, newPlayer);
     return newPlayer;
@@ -162,12 +207,12 @@ Player * playerSetup() {
 */
 int playerMove(int y, int x, Player * player) {
     // Replace old position
-    mvprintw(player->yPos, player->xPos, ".");
+    mvprintw(player->position.y, player->position.x, ".");
     // Change player position and move cursor
-    player->xPos = x;
-    player->yPos = y;
-    mvprintw(player->yPos, player->xPos, "@");
-    move(player->yPos, player->xPos);
+    player->position.x = x;
+    player->position.y = y;
+    mvprintw(player->position.y, player->position.x, "@");
+    move(player->position.y, player->position.x);
 
     return 0;
 }
@@ -190,9 +235,10 @@ int checkMove(int newY, int newX, Player * player) {
         break;
     
     default:
-        move(player->yPos, player->xPos);
+        move(player->position.y, player->position.x);
         break;
     }
+    return 0;
 }
 
 /**
@@ -209,23 +255,23 @@ int handleInput (int input, Player * player) {
     {
     case 'z':
     case 'Z':
-        newY = player->yPos-1;
-        newX = player->xPos;
+        newY = player->position.y-1;
+        newX = player->position.x;
         break;
     case 'q':
     case 'Q':
-        newY = player->yPos;
-        newX = player->xPos-1;
+        newY = player->position.y;
+        newX = player->position.x-1;
         break;
     case 's':
     case 'S':
-        newY = player->yPos+1;
-        newX = player->xPos;
+        newY = player->position.y+1;
+        newX = player->position.x;
         break;
     case 'd':
     case 'D':
-        newY = player->yPos;
-        newX = player->xPos+1;
+        newY = player->position.y;
+        newX = player->position.x+1;
         break;
     }
     checkMove(newY, newX, player);
