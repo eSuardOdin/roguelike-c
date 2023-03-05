@@ -1,17 +1,34 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
-
+/**
+ * Definition of the Player struct
+*/
 typedef struct Player
 {
     int xPos;
     int yPos;
     int health;
+
+    // Monster ** monsters; // Array to pointers of monsters
+    // Item ** items;
 } Player;
 
+/**
+ * Definition of the Room struct
+*/
+typedef struct Room
+{
+    int xPos;
+    int yPos;
+    int witdh;
+    int height;
+
+} Room;
 
 int screenSetup();
-int mapSetup();
+Room ** mapSetup();
+Room * createRoom(int, int, int, int);
 Player * playerSetup();
 int handleInput(int, Player *);
 int playerMove(int, int, Player *);
@@ -39,6 +56,35 @@ int main(void) {
 }
 
 
+/*
+    ROOM FUNCTIONS
+*/
+
+Room * createRoom(int y, int x, int heigth, int width) {
+ Room * room;
+ room = malloc(sizeof(Room));
+ room->yPos = y;
+ room->xPos = x;
+ room->height = heigth;
+ room->witdh = width;
+
+ for(int i = 0; i <= width; i++) {
+    for(int j = 0; j <= heigth; j++){
+        if(i == 0 || i == width) {
+            if (j == 0 || j == heigth) {
+                mvprintw(y+j, x+i, "O");
+            } else {
+                mvprintw(y+j, x+i, "|");
+            }
+        } else if (j == 0 || j == heigth) {
+            mvprintw(y+j, x+i, "-");
+        } else {
+            mvprintw(y+j, x+i, ".");
+        }
+    }
+ }
+ return room;
+}
 
 
 int screenSetup() {
@@ -51,21 +97,10 @@ int screenSetup() {
 }
 
 
-int mapSetup() {
-    mvprintw(7,12,  "O------------O");  // mvprintw(yAxis, xAxis, stringToPrint);
-    mvprintw(8,12,  "|............|");
-    mvprintw(9,12,  "|............|");
-    mvprintw(10,12, "|............|");
-    mvprintw(11,12, "|............|");
-    mvprintw(12,12, "O------------O");
-
-    mvprintw(4,35, "O------------O");  // mvprintw(yAxis, xAxis, stringToPrint);
-    mvprintw(5,35, "|............|");
-    mvprintw(6,35, "|............|");
-    mvprintw(7,35, "|............|");
-    mvprintw(8,35, "|............|");
-    mvprintw(9,35, "O------------O");
-
+Room ** mapSetup() {
+    Room ** rooms; // Array of rooms
+    rooms = malloc(sizeof(Room) * 6);
+    rooms [0] = createRoom(7, 12, 6, 14);
     return 0;
 }
 
@@ -100,9 +135,9 @@ int checkMove(int newY, int newX, Player * player) {
         break;
     
     default:
+        move(player->yPos, player->xPos);
         break;
     }
-    move(player->yPos, player->xPos);
 }
 
 int handleInput (int input, Player * player) {
